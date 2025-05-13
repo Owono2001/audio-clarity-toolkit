@@ -1,0 +1,286 @@
+/* app/static/css/style.css */
+
+/* --- Global Styles & Variables --- */
+:root {
+    --primary-color: #0056b3; /* A deeper, more professional blue */
+    --primary-color-darker: #004085;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --body-bg: #eef2f7; /* Lighter, softer background */
+    --card-bg: #ffffff;
+    --border-radius: 0.5rem; /* Slightly more rounded corners */
+    --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+body {
+    font-family: var(--font-family-sans-serif);
+    background-color: var(--body-bg);
+    color: var(--dark-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+main.container-fluid, main.container { /* Allow full width for main content area if needed */
+    flex: 1;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* --- Navbar --- */
+.navbar {
+    box-shadow: var(--box-shadow-sm);
+    background-color: var(--primary-color) !important; /* Override Bootstrap's bg-dark */
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+.navbar-brand .bi {
+    font-size: 1.75rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+/* --- Cards --- */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    background-color: var(--card-bg);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.75rem 1.5rem rgba(0,0,0,0.12);
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+    border-bottom: none;
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    padding: 1rem 1.5rem;
+}
+.card-header h4 .bi {
+    margin-right: 0.75rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* --- Forms & Buttons --- */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+
+.form-control, .form-select {
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    border: 1px solid #ced4da;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.25);
+}
+
+.btn {
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--primary-color-darker);
+    border-color: var(--primary-color-darker);
+    box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.5);
+}
+.btn-primary .bi {
+    margin-right: 0.5rem;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+.btn-success:hover, .btn-success:focus {
+    background-color: #146c43;
+    border-color: #13653f;
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.5);
+}
+.btn-success .bi {
+    margin-right: 0.5rem;
+}
+
+
+/* Custom File Input */
+.custom-file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+    border: 1px dashed #ced4da;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.custom-file-input-wrapper:hover {
+    background-color: #e9ecef;
+    border-color: var(--primary-color);
+}
+.custom-file-input-wrapper input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+.custom-file-input-wrapper .file-input-label {
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+.custom-file-input-wrapper .file-input-label .bi {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+#file-name-display {
+    margin-top: 0.75rem;
+    font-style: italic;
+    color: var(--dark-color);
+    font-weight: 500;
+}
+
+
+/* --- Progress & Status --- */
+#upload-progress {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #e3e3e3;
+}
+
+#upload-progress h5 {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.progress {
+    height: 2.5rem; /* Taller progress bar */
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    background-color: #e9ecef;
+    box-shadow: inset 0 0.1rem 0.1rem rgba(0,0,0,.1);
+}
+
+.progress-bar {
+    transition: width .4s ease-in-out;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background-color: var(--primary-color); /* Use primary color for progress */
+}
+.progress-bar.bg-success {
+    background-color: var(--success-color) !important;
+}
+.progress-bar.bg-danger {
+    background-color: var(--danger-color) !important;
+}
+
+
+#status-message {
+    font-weight: 500;
+    font-size: 1.1rem;
+    padding: 1rem;
+}
+.alert {
+    border-radius: var(--border-radius);
+    border-width: 0; /* Remove default border, rely on background and shadow */
+    box-shadow: var(--box-shadow-sm);
+}
+.alert-info {
+    background-color: #cff4fc; color: #055160;
+}
+.alert-success {
+    background-color: #d1e7dd; color: #0f5132;
+}
+.alert-danger {
+    background-color: #f8d7da; color: #58151c;
+}
+.alert-warning {
+    background-color: #fff3cd; color: #664d03;
+}
+
+
+#result-link-container .btn {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+}
+
+/* --- Footer --- */
+footer {
+    background-color: var(--dark-color);
+    color: var(--light-color);
+    padding: 2rem 0;
+    margin-top: auto; /* Pushes footer to bottom */
+}
+footer p {
+    margin-bottom: 0;
+    color: #adb5bd;
+}
+
+/* --- Utility Classes --- */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: .2em;
+    margin-right: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+    #upload-progress {
+        padding: 1rem;
+    }
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    .progress {
+        height: 2rem;
+        font-size: 0.9rem;
+    }
+}

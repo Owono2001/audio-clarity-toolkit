@@ -1,0 +1,14 @@
+Flask==2.3.3  # Or newer compatible version
+Celery[eventlet]==5.3.6 # With redis extras
+redis==5.0.4
+pydub==0.25.1
+scipy==1.12.0 # Or newer
+numpy==1.26.4 # Or newer
+noisereduce==2.0.1
+librosa==0.10.1 # Or newer
+python-magic-bin==0.4.14     # Ensure libmagic is installed
+Werkzeug==2.3.8 # Or newer compatible version (for file handling and dev server)
+python-dotenv==1.0.1
+bootstrap-flask==2.3.1 # For Bootstrap integration
+gunicorn==21.2.0 # For production WSGI server (optional for dev)
+Arrow           # For date and time handling

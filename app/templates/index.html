@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Audio Cleanup - Audio Clarity Toolkit{% endblock %}
+
+{% block head_extra %}
+<style>
+    .tool-card { /* Renamed from effect-card */
+        border: 1px solid #ddd;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        background-color: #fdfdfd;
+        box-shadow: var(--box-shadow-sm);
+    }
+    .tool-card h5 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 0.5rem;
+    }
+    .tool-card .form-label {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .tool-card .form-range {
+        cursor: pointer;
+    }
+    .param-value {
+        font-weight: bold;
+        color: var(--primary-color-darker);
+    }
+    .tool-card .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-9 col-md-11">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h4 class="my-1 fw-bold"><i class="bi bi-stars"></i> Audio Clarity Toolkit</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center mb-4">
+                    Upload your audio to normalize volume, reduce noise, remove rumble, and trim silences for a clearer, more polished sound.
+                </p>
+                
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <h5 class="mb-3"><i class="bi bi-file-earmark-music-fill"></i> Step 1: Upload Audio</h5>
+                        <div class="custom-file-input-wrapper" id="file-drop-zone">
+                            <input type="file" name="file" id="file" accept=".wav,.mp3,.m4a,.ogg,.flac" required>
+                            <span class="file-input-label">
+                                <i class="bi bi-upload"></i>
+                                Drag & drop your audio file here, or click to select.
+                            </span>
+                        </div>
+                        <div id="file-name-display" class="form-text text-center mt-2">No file selected.</div>
+                    </div>
+
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <h5 class="mb-3"><i class="bi bi-tools"></i> Step 2: Select Cleanup Tools (Applied in order)</h5>
+                        
+                        <div class="tool-card">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="enable_noise_reduction" name="enable_noise_reduction" checked>
+                                <label class="form-check-label h5" for="enable_noise_reduction">Noise Reduction</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="noise_reduction_strength" class="form-label">Strength (0.1=subtle, 1.0=strong): <span id="noise_reduction_strength_value" class="param-value">0.8</span></label>
+                                <input type="range" class="form-range" min="0.1" max="1.0" step="0.05" id="noise_reduction_strength" name="noise_reduction_strength" value="0.8">
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="enable_high_pass_filter" name="enable_high_pass_filter" checked>
+                                <label class="form-check-label h5" for="enable_high_pass_filter">High-Pass Filter (Remove Rumble)</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="high_pass_cutoff_hz" class="form-label">Cutoff Frequency (Hz): <span id="high_pass_cutoff_hz_value" class="param-value">80</span> Hz</label>
+                                <input type="range" class="form-range" min="20" max="300" step="5" id="high_pass_cutoff_hz" name="high_pass_cutoff_hz" value="80">
+                            </div>
+                        </div>
+                        
+                        <div class="tool-card">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="enable_normalization" name="enable_normalization" checked>
+                                <label class="form-check-label h5" for="enable_normalization">Volume Normalization</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="normalization_target_dbfs" class="form-label">Target Level (dBFS): <span id="normalization_target_dbfs_value" class="param-value">-16</span> dBFS</label>
+                                <input type="range" class="form-range" min="-24" max="-1" step="1" id="normalization_target_dbfs" name="normalization_target_dbfs" value="-16">
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="enable_silence_trimming" name="enable_silence_trimming">
+                                <label class="form-check-label h5" for="enable_silence_trimming">Trim Excessive Silences</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="trim_min_silence_ms" class="form-label">Min. Silence to Trim (ms): <span id="trim_min_silence_ms_value" class="param-value">3000</span> ms</label>
+                                <input type="range" class="form-range" min="500" max="10000" step="100" id="trim_min_silence_ms" name="trim_min_silence_ms" value="3000" disabled>
+                            </div>
+                             <div class="mb-3">
+                                <label for="trim_insert_silence_ms" class="form-label">Silence to Insert (ms): <span id="trim_insert_silence_ms_value" class="param-value">500</span> ms</label>
+                                <input type="range" class="form-range" min="0" max="5000" step="50" id="trim_insert_silence_ms" name="trim_insert_silence_ms" value="500" disabled>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <h5 class="mb-3"><i class="bi bi-file-earmark-arrow-down-fill"></i> Step 3: Output Format</h5>
+                        <label for="output_format" class="form-label">Desired Output Format:</label>
+                        <select class="form-select form-select-lg" name="output_format" id="output_format">
+                            <option value="wav" selected>WAV (Lossless Quality)</option>
+                            <option value="mp3">MP3 (Compressed, Good Compatibility)</option>
+                            <option value="m4a">M4A (AAC, Good Quality/Size)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submit-button">
+                            <i class="bi bi-magic"></i> Clean & Process Audio
+                        </button>
+                    </div>
+                </form>
+
+                <div id="upload-progress" class="mt-4 pt-3" style="display:none;">
+                    <h5 class="text-center mb-3">Processing Status</h5>
+                    <div id="status-message" class="alert alert-info text-center" role="alert">
+                        Initializing...
+                    </div>
+                    <div class="progress" role="progressbar" aria-label="Processing progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%" id="progress-bar-inner">0%</div>
+                    </div>
+                    <div id="result-link-container" class="mt-4 text-center" style="display:none;">
+                        </div>
+                    <div id="error-details-container" class="mt-3 alert alert-danger" style="display:none;">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

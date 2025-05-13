@@ -1,0 +1,85 @@
+# render.yaml
+# This is a blueprint for deploying the Audio Clarity Toolkit on Render.
+
+services:
+  # 1. Redis Instance (for Celery Broker and Result Backend)
+  - type: redis
+    name: audio-clarity-redis
+    region: oregon # Choose a region close to you or your users
+    plan: free # Or a paid plan for more resources/persistence
+    # maxmemoryPolicy: allkeys-lru # Good for cache/Celery, Render may set a default
+
+  # 2. Web Service (Flask Application with Gunicorn)
+  - type: web
+    name: audio-clarity-web
+    env: docker # Specifies that we are using a Dockerfile
+    region: oregon
+    plan: free # Or a starter/standard plan for more resources
+    # healthCheckPath: / # A simple health check endpoint (Render pings this)
+    # autoDeploy: true # Optional: automatically redeploy on pushes to your Git repo's main branch
+    envVars:
+      - key: PYTHON_VERSION # Render specific, but Dockerfile handles Python version
+        value: "3.10" # Match Python version in Dockerfile
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "0" # Important for production
+      - key: SECRET_KEY
+        generateValue: true # Let Render generate a secure secret key
+      - key: CELERY_BROKER_URL
+        fromService: # Get URL from the Redis service defined above
+          type: redis
+          name: audio-clarity-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService: # Get URL from the Redis service defined above
+          type: redis
+          name: audio-clarity-redis
+          property: connectionString
+      # You can add other .env variables here if they are not sensitive,
+      # or use Render's secret files for sensitive ones.
+      # UPLOAD_FOLDER_REL, PROCESSED_FOLDER_REL, LOG_FILE_PATH are relative to /app in Docker
+      # and should work as is.
+      - key: CLEANUP_MAX_FILE_AGE_DAYS
+        value: "7" # Default, can be overridden in Render dashboard
+    # For persistent storage of uploads/processed files, you'd add a disk:
+    # disks:
+    #   - name: audio-data
+    #     mountPath: /app/persistent_data # Then adjust UPLOAD_FOLDER and PROCESSED_FOLDER in config.py
+    #     sizeGB: 1 # Smallest size, adjust as needed
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 app:create_app()"
+    # $PORT is provided by Render. --workers and --threads can be adjusted.
+    # --timeout 120 (seconds) to handle potentially longer uploads if not using direct S3 uploads.
+
+  # 3. Background Worker (Celery)
+  - type: worker
+    name: audio-clarity-celery
+    env: docker
+    region: oregon
+    plan: free # Or a starter plan
+    # autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.10"
+      - key: FLASK_ENV # Celery worker might load Flask app context
+        value: production
+      - key: SECRET_KEY # Match web service or generate new
+        fromService:
+          type: web
+          name: audio-clarity-web
+          envVarKey: SECRET_KEY
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: audio-clarity-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: audio-clarity-redis
+          property: connectionString
+      - key: CLEANUP_MAX_FILE_AGE_DAYS
+        value: "7"
+    startCommand: "celery -A celery_worker.celery_app worker -l info -P eventlet -B --concurrency=2"
+    # -B runs Beat scheduler in the same process. Concurrency can be adjusted.
+    # For free tier, keep concurrency low.

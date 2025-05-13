@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Processing Result - Audio Clarity Toolkit{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h4 class="my-1 fw-bold">
+                    {% if task.state == 'SUCCESS' %}
+                        <i class="bi bi-check-circle-fill text-success"></i> Audio Cleanup Complete
+                    {% elif task.state == 'FAILURE' %}
+                        <i class="bi bi-x-octagon-fill text-danger"></i> Processing Failed
+                    {% else %}
+                        <i class="bi bi-hourglass-split"></i> Task Status
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body text-center">
+                <p class="lead">Task ID: <code class="user-select-all">{{ task.id }}</code></p>
+                
+                <div id="task-info-static" class="mt-3">
+                    {% set progress_val = 0 %} 
+                    {% set status_message = 'Processing...' %}
+                    {% set original_filename_display = '' %}
+
+                    {% if task.info is mapping %} 
+                        {% set progress_val = task.info.get('progress', 0) | int %}
+                        {% set status_message = task.info.get('status', status_message) %}
+                        {% if task.info.get('original_filename') %}
+                            {% set original_filename_display = ' for <em>' ~ task.info.original_filename ~ '</em>' %}
+                        {% endif %}
+                    {% elif task.state == 'SUCCESS' %}
+                        {% set progress_val = 100 %}
+                        {% set status_message = "Audio cleaned successfully!" %}
+                         {% if task.result is mapping and task.result.get('original_filename') %}
+                            {% set original_filename_display = ' for <em>' ~ task.result.original_filename ~ '</em>' %}
+                         {% elif task.info is mapping and task.info.get('original_filename') %}
+                            {% set original_filename_display = ' for <em>' ~ task.info.original_filename ~ '</em>' %}
+                         {% endif %}
+                    {% elif task.state == 'FAILURE' %}
+                        {% set status_message = "An error occurred during cleanup." %}
+                         {% if task.info is mapping and task.info.get('original_filename') %}
+                            {% set original_filename_display = ' for <em>' ~ task.info.original_filename ~ '</em>' %}
+                         {% elif task.info is string %} 
+                            {% set status_message = task.info %}
+                         {% endif %}
+                    {% endif %}
+
+                    {% if task.state == 'PENDING' %}
+                        <div class="alert alert-info" role="alert">
+                            <div class="spinner-border spinner-border-sm text-info me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            Your audio cleanup task is queued and will start shortly.
+                        </div>
+                    {% elif task.state == 'PROGRESS' %}
+                        <div class="alert alert-info" role="alert">
+                           <p class="mb-2"><strong>{{ status_message }}</strong>{{ original_filename_display | safe }}</p>
+                            <div class="progress" style="height: 2.5rem;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ progress_val }}%;" aria-valuenow="{{ progress_val }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ progress_val }}%
+                                </div>
+                            </div>
+                        </div>
+                    {% elif task.state == 'SUCCESS' %}
+                        <div class="alert alert-success fade show" role="alert">
+                            <h5 class="alert-heading"><i class="bi bi-stars"></i> Success!</h5>
+                            <p>
+                                {% set result_info = task.result if task.result is mapping else task.info %}
+                                {% if result_info is mapping and result_info.get('original_filename') %}
+                                Original file: <strong>{{ result_info.original_filename }}</strong><br>
+                                {% endif %}
+                                Your cleaned audio: <strong>{{ result_info.get('result_filename', 'Unknown') }}</strong> is ready.
+                            </p>
+                            <hr>
+                            {% if result_info is mapping and result_info.get('result_filename') %}
+                            <a href="{{ url_for('download_processed_file', filename=result_info.result_filename) }}" class="btn btn-success btn-lg">
+                                <i class="bi bi-download"></i> Download Cleaned Audio
+                            </a>
+                            {% else %}
+                            <p class="text-muted">Download link not available.</p>
+                            {% endif %}
+                        </div>
+                    {% elif task.state == 'FAILURE' %}
+                        <div class="alert alert-danger fade show" role="alert">
+                            <h5 class="alert-heading"><i class="bi bi-emoji-frown"></i> Oops! Something went wrong.</h5>
+                            <p>
+                                {% set error_info = task.info %}
+                                {% if error_info is mapping and error_info.get('original_filename') %}
+                                Original file: <strong>{{ error_info.original_filename }}</strong><br>
+                                {% endif %}
+                                An error occurred during processing:
+                                <br>
+                                <code class="d-block mt-2 p-2 bg-light text-dark rounded">
+                                    {% if error_info is mapping %}
+                                        {{ error_info.get('status_message', error_info.get('error_details', 'Unknown error details.')) }}
+                                    {% else %}
+                                        {{ error_info | string | e }}
+                                    {% endif %}
+                                </code>
+                            </p>
+                        </div>
+                    {% else %} 
+                        <div class="alert alert-warning" role="alert">
+                            Task status: <strong>{{ task.state }}</strong>.
+                            {% if task.info %} Additional info: {{ task.info | string | e }}{% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                 <a href="{{ url_for('index') }}" class="btn btn-outline-primary mt-4"><i class="bi bi-arrow-left-circle"></i> Process Another File</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if task.state not in ['SUCCESS', 'FAILURE'] %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const taskId = "{{ task.id }}";
+        function pollForResultPage() {
+            if (!taskId) return; // Don't poll if no task ID
+            fetch(`/status/${taskId}`)
+                .then(response => {
+                    if (!response.ok) { 
+                        console.error('Error fetching status:', response.status, response.statusText);
+                        if (response.status >= 500) return; 
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data || !data.state) { 
+                        console.warn("Received invalid data from status endpoint. Polling stopped.");
+                        return;
+                    }
+                    if (data.state === 'SUCCESS' || data.state === 'FAILURE') {
+                        window.location.reload(); 
+                    } else if (data.state === 'PENDING' || data.state === 'PROGRESS') {
+                        setTimeout(pollForResultPage, 5000); 
+                    } else {
+                         console.warn("Task in unexpected state or polling stopped:", data.state);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error polling task status on result page:', error);
+                });
+        }
+        setTimeout(pollForResultPage, 3000);
+    });
+</script>
+{% endif %}
+{% endblock %}
