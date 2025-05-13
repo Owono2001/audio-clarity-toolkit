@@ -16,17 +16,17 @@ env/
 env.bak/
 venv.bak/
 
-# IDE / Editor specific
-.vscode/
+# IDE / Editor specific (keep .vscode/ if you want to share launch/settings for collaborators)
+# .vscode/ 
 *.sublime-project
 *.sublime-workspace
 .idea/
 *.DS_Store
 nbproject/
 
-# Configuration files (DO NOT COMMIT THESE)
+# Configuration files with secrets (NEVER COMMIT THESE)
 .env
-instance/ # Flask instance folder if used for SQLite, etc.
+instance/ # Flask instance folder if used for SQLite db, local secrets etc.
 
 # Compiled files
 *.pyc
@@ -55,20 +55,21 @@ MANIFEST
 logs/
 *.log
 *.pot
-*.sqlite3
-*.db
+*.sqlite3 # If you ever use SQLite locally for testing
 db.sqlite3
+celerybeat-schedule # Celery Beat schedule file
+*.pid # Process ID files
 
-# Uploaded and processed files (if you don't want to commit examples)
+# Uploaded and processed files (these are runtime-generated)
 uploads/*
-!uploads/.gitkeep 
+!uploads/.gitkeep # Optional: to keep the empty directory in git
 processed_audio/*
-!processed_audio/.gitkeep
-
-# Celery
-celerybeat-schedule
-*.pid
+!processed_audio/.gitkeep # Optional: to keep the empty directory in git
 
 # Coverage reports
 coverage.xml
 .coverage
+
+# OS-specific
+.DS_Store
+Thumbs.db
